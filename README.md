@@ -8,24 +8,6 @@ Here is the project structure for reference:
 
 <img width="284" alt="Screenshot 2024-07-03 at 11 52 38 PM" src="https://github.com/infinite2004/myschool/assets/44120607/1604cfc0-2dc8-4c2c-bea4-4099065f95e5">
 
-myschool/
-├── app.py
-├── config.py
-├── extensions.py
-├── forms.py
-├── models.py
-├── templates/
-│   ├── base.html
-│   ├── check_attendance.html
-│   ├── dashboard.html
-│   ├── login.html
-│   ├── register.html
-│   ├── report_card.html
-│   ├── track_payments.html
-├── static/
-│   └── style.css
-└── requirements.txt
-
 
 File Descriptions
 

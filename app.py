@@ -1,6 +1,7 @@
 from flask import Flask, render_template, redirect, url_for, flash, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, login_user, current_user, logout_user, login_required
+from flask_migrate import Migrate
 from forms import LoginForm, RegistrationForm
 from models import User
 from extensions import db, login_manager
@@ -10,6 +11,7 @@ app = Flask(__name__)
 app.config.from_object('config.Config')
 
 db.init_app(app)
+migrate = Migrate(app, db)
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 
@@ -19,7 +21,9 @@ def load_user(user_id):
 
 @app.route('/')
 def home():
-    return render_template('dashboard.html')
+    if current_user.is_authenticated:
+        return redirect(url_for('dashboard'))
+    return redirect(url_for('login'))
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -27,12 +31,16 @@ def register():
         return redirect(url_for('dashboard'))
     form = RegistrationForm()
     if form.validate_on_submit():
-        hashed_password = generate_password_hash(form.password.data)
-        user = User(username=form.username.data, email=form.email.data, password=hashed_password, is_teacher=form.is_teacher.data)
-        db.session.add(user)
-        db.session.commit()
-        flash('Your account has been created! You are now able to log in', 'success')
-        return redirect(url_for('login'))
+        existing_user = User.query.filter_by(email=form.email.data).first()
+        if existing_user is None:
+            hashed_password = generate_password_hash(form.password.data)
+            user = User(username=form.username.data, email=form.email.data, password=hashed_password, is_teacher=form.is_teacher.data)
+            db.session.add(user)
+            db.session.commit()
+            flash('Your account has been created! You are now able to log in', 'success')
+            return redirect(url_for('login'))
+        else:
+            flash('Email already registered. Please choose a different email or log in.', 'danger')
     return render_template('register.html', form=form)
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -50,6 +58,7 @@ def login():
     return render_template('login.html', form=form)
 
 @app.route('/logout')
+@login_required
 def logout():
     logout_user()
     return redirect(url_for('login'))
